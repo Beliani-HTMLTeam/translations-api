@@ -1,13 +1,15 @@
 import { Database } from 'bun:sqlite';
+import { join } from 'path';
 
 // Bun-native sqlite implementation (synchronous) - always create/open DB and use it.
-const DB_PATH = './data/metrics.sqlite';
+const DATA_DIR = join(process.cwd(), 'data');
+const DB_PATH = join(DATA_DIR, 'metrics.sqlite');
 
 // Ensure data directory exists (best-effort)
 try {
-  if ((globalThis as any).Bun && (globalThis as any).Bun.mkdirSync) {
-    (globalThis as any).Bun.mkdirSync('./data', { recursive: true });
-  }
+  // @ts-ignore
+  const { mkdirSync } = require('fs');
+  mkdirSync(DATA_DIR, { recursive: true });
 } catch (e) {
   // ignore
 }
