@@ -13,7 +13,14 @@ import { registerOther } from './utils/registerEndpoints';
 import { registerDynamic } from './endpoints/dynamic/sheet_tab.endpoint';
 import { registerAllAtOnce } from './endpoints/static/registerAllAtOnce';
 
+import { resolve } from 'path';
+
 const localIp = getLocalLanIp();
+
+const frontendDist = resolve(process.cwd(), 'frontend/dist');
+const indexHtml = resolve(frontendDist, 'index.html');
+
+console.log('Serving frontend from:', frontendDist);
 
 export const app = new Elysia({
   normalize: true,
@@ -35,10 +42,10 @@ export const app = new Elysia({
     })
   )
 
-  .get('/', () => file('frontend/dist/index.html'))
+  .get('/', () => file(indexHtml))
   .use(
     staticPlugin({
-      assets: 'frontend/dist',
+      assets: frontendDist,
       prefix: '/'
     })
   )
