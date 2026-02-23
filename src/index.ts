@@ -43,12 +43,16 @@ export const app = new Elysia({
   )
 
   .get('/', () => file(indexHtml))
+  // serve assets with /assets prefix (so /assets/index.js works)
   .use(
     staticPlugin({
-      assets: frontendDist,
-      prefix: '/'
+      assets: resolve(frontendDist, 'assets'),
+      prefix: '/assets'
     })
   )
+  // serve other root files (like vite.svg, robots.txt) if needed, or just let them fall through if not critical
+  .get('/vite.svg', () => file(resolve(frontendDist, 'vite.svg')))
+  .get('/robots.txt', () => file(resolve(frontendDist, 'robots.txt')))
 
   .group('/dynamic/:year', (_dynamic) => {
     _dynamic.get(
