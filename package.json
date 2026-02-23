@@ -11,12 +11,12 @@
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.1",
-    "@elysiajs/openapi": "^1.4.13",
+    "@elysiajs/openapi": "^1.4.14",
     "@elysiajs/static": "^1.4.7",
-    "cache-manager": "^7.2.7",
+    "cache-manager": "^7.2.8",
     "elysia": "latest",
     "google-auth-library": "^10.5.0",
-    "google-spreadsheet": "^5.0.2",
+    "google-spreadsheet": "^5.2.0",
     "sqlite": "^5.1.1"
   },
   "devDependencies": {
