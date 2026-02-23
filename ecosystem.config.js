@@ -5,8 +5,9 @@ module.exports = {
   apps: [
     {
       name: 'translations-api',
-      script: 'src/index.ts',
-      interpreter: 'bun',
+      script: 'bun',
+      args: 'src/index.ts',
+      interpreter: 'none',
       env: {
         NODE_ENV: 'production',
       },
