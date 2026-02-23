@@ -7,6 +7,10 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 BRANCH=${1:-main}
 
+# Ensure bun is in PATH for non-interactive shells
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
 echo "Deploying branch: $BRANCH in $REPO_DIR"
 
 cd "$REPO_DIR"
