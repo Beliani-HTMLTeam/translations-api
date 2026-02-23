@@ -35,11 +35,11 @@ export const app = new Elysia({
     })
   )
 
-  .get('/', () => file('./public/index.html'))
+  .get('/', () => file('frontend/dist/index.html'))
   .use(
     staticPlugin({
-      prefix: '',
-      assets: './public',
+      assets: 'frontend/dist',
+      prefix: '/'
     })
   )
 
@@ -106,7 +106,8 @@ export const app = new Elysia({
 registerOther(app);
 
 // initialize sqlite persistence for metrics (if a sqlite driver is available)
-await initDb();
+// Note: initDb() is a no-op async function; DB initialization happens at module import time in db.ts
+initDb();
 // prune older than 30 days once a day
 try {
   setInterval(() => pruneOldRequests(30), 24 * 60 * 60 * 1000);
@@ -114,8 +115,10 @@ try {
   // ignore if timers not available
 }
 
-// Prewarm caches on startup so first requests don't hit Google Sheets
-await prewarmStaticEndpoints();
+// Prewarm caches on startup (fire and forget, don't await at module level to avoid async module)
+prewarmStaticEndpoints().catch((err) => {
+  console.error('Error prewarming static endpoints:', err);
+});
 
 // Bind to all interfaces so the server is reachable from the LAN.
 app.listen({ port: 3000, hostname: '0.0.0.0' });
