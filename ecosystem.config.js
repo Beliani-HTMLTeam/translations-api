@@ -4,6 +4,14 @@
 module.exports = {
   apps: [
     {
+      name: 'zrok-service',
+      script: 'zrok',
+      args: `share reserved ${process.env.ZROK_TOKEN} --headless`,
+      interpreter: 'none',
+      autorestart: true,
+      watch: false,
+    },
+    {
       name: 'translations-api',
       script: 'bun',
       args: 'src/index.ts',

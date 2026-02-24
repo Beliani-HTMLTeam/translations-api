@@ -39,6 +39,17 @@ cd ..
 # reload via pm2
 if command -v pm2 >/dev/null 2>&1; then
   echo "Reloading pm2 process..."
+  # Load environment variables for PM2
+  if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+  fi
+  
+  if [ -z "$ZROK_TOKEN" ]; then
+    echo "WARNING: ZROK_TOKEN is not set. zrok-service might fail."
+  fi
+
   pm2 startOrReload ecosystem.config.js --env production
   pm2 save
 else
