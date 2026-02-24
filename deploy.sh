@@ -39,18 +39,29 @@ cd ..
 # reload via pm2
 if command -v pm2 >/dev/null 2>&1; then
   echo "Reloading pm2 process..."
-  # Load environment variables for PM2
+  
+  # Load environment variables checks
   if [ -f .env ]; then
     set -a
     source .env
     set +a
   fi
   
-  if [ -z "$ZROK_TOKEN" ]; then
-    echo "WARNING: ZROK_TOKEN is not set. zrok-service might fail."
+  # Check if zrok is working/enabled, if not try to enable
+  if command -v zrok >/dev/null 2>&1; then
+      if ! zrok status >/dev/null 2>&1; then
+          if [ -n "${ZROK_ENABLE_TOKEN:-}" ]; then
+              echo "Enabling zrok environment..."
+              zrok enable "$ZROK_ENABLE_TOKEN"
+          else
+              echo "WARNING: zrok not enabled and ZROK_ENABLE_TOKEN not found in .env"
+          fi
+      fi
   fi
 
-  pm2 startOrReload ecosystem.config.js --env production
+  # Hard restart to ensure config/env changes are picked up
+  pm2 delete all || true
+  pm2 start ecosystem.config.js
   pm2 save
 else
   echo "ERROR: pm2 is required but not found. Please install pm2: bun add -g pm2"
