@@ -18,10 +18,44 @@ import { logCacheEvent } from '../cache';
 interface DynamicSheetResponse {
   dataOrigin: 'cache' | 'googleAPI';
   executionTime: number;
+  keys?: string[];
   data: Record<string, any[]>;
 }
 
-export async function getDynamicSheetCached(sheetTab: string, year?: string): Promise<DynamicSheetResponse> {
+const ISSUE_LOGS_RE = /issue_logs\/(\d+)\/?/i;
+
+function findKeysHeader(data: Record<string, any[]>): string | undefined {
+  const headers = Object.keys(data);
+
+  for (const header of headers) {
+    if (ISSUE_LOGS_RE.test(header)) return header;
+  }
+
+  return undefined;
+}
+
+function normalizeKeyCell(value: unknown): string {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') return value.replaceAll('\n', '<br />').trim();
+
+  return String(value).trim();
+}
+
+function extractKeys(rawData: Record<string, any[]>) {
+  const keysHeader = findKeysHeader(rawData);
+  if (!keysHeader) return undefined;
+
+  const col = rawData[keysHeader];
+  
+  if (!Array.isArray(col)) return undefined;
+  
+  return col.map(normalizeKeyCell);
+}
+
+export async function getDynamicSheetCached(
+  sheetTab: string,
+  year?: string
+): Promise<DynamicSheetResponse> {
   const y = year || '2025';
   const cacheKey = `dynamic_${y}_${sheetTab}`;
   const start_time = Date.now();
@@ -53,6 +87,8 @@ export async function getDynamicSheetCached(sheetTab: string, year?: string): Pr
         HEADER_TRANSFORMATIONS
       );
 
+      const keys = extractKeys(cachedData);
+
       const responseTime = Date.now() - start_time;
 
   // Only record metrics after successful response
@@ -64,6 +100,7 @@ export async function getDynamicSheetCached(sheetTab: string, year?: string): Pr
       return {
         dataOrigin: 'cache',
         executionTime: responseTime,
+        keys,
         data: filteredData,
       };
     }
@@ -101,6 +138,8 @@ export async function getDynamicSheetCached(sheetTab: string, year?: string): Pr
       HEADER_TRANSFORMATIONS
     );
 
+    const keys = extractKeys(result.data);
+
     const responseTime = Date.now() - start_time;
 
   // Only record metrics after successful response
@@ -112,6 +151,7 @@ export async function getDynamicSheetCached(sheetTab: string, year?: string): Pr
     return {
       dataOrigin: 'googleAPI',
       executionTime: responseTime,
+      keys,
       data: filteredData,
     };
   } catch (err) {

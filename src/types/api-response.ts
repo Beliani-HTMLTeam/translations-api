@@ -16,6 +16,7 @@ export const makeResponseSchema = (settings: {
       message: t.String(),
       executionTime: t.Numeric(),
       dataOrigin: t.Optional(t.String({ enum: ['cache', 'googleAPI'] })),
+      keys: t.Optional(t.Array(t.String())),
       data: t.Optional(t.Union([t.Array(t.Any()), t.Record(t.String(), t.Any())])),
     }),
 

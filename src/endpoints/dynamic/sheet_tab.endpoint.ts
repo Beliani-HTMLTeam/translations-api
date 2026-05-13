@@ -27,6 +27,7 @@ export function registerDynamic(parent: any) {
               message: settings.messages.success_fetch,
               dataOrigin: res.dataOrigin,
               executionTime: res.executionTime,
+              keys: res.keys,
               data: res.data,
             };
           } catch (err: any) {
@@ -68,6 +69,7 @@ export function registerDynamic(parent: any) {
           try {
             const envelope = await getDynamicSheetCached(sheet_tab, year);
             const sheet = envelope.data;
+            const keys = envelope.keys;
 
             const isRangeValid = /^\d+:\d+$|^\d+$/.test(range);
             if (!isRangeValid) {
@@ -97,6 +99,7 @@ export function registerDynamic(parent: any) {
               message: settings.messages.success_fetch,
               executionTime: envelope.executionTime,
               dataOrigin: envelope.dataOrigin,
+              keys: Array.isArray(keys) ? keys.slice(start, end) : undefined,
               data: result,
             };
           } catch (err: any) {
