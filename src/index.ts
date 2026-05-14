@@ -1,12 +1,9 @@
 import { Elysia, t } from 'elysia';
-import { staticPlugin } from '@elysiajs/static';
-import { file } from 'bun';
 
 import cors from '@elysiajs/cors';
 import openapi from '@elysiajs/openapi';
 
 import { prewarmStaticEndpoints } from './services/cache';
-import { initDb, pruneOldRequests } from './utils/db';
 
 import { getLocalLanIp } from './utils/network';
 import { registerOther } from './utils/registerEndpoints';
@@ -98,16 +95,6 @@ export const app = new Elysia({
   });
 
 registerOther(app);
-
-// initialize sqlite persistence for metrics (if a sqlite driver is available)
-// Note: initDb() is a no-op async function; DB initialization happens at module import time in db.ts
-initDb();
-// prune older than 30 days once a day
-try {
-  setInterval(() => pruneOldRequests(30), 24 * 60 * 60 * 1000);
-} catch (e) {
-  // ignore if timers not available
-}
 
 // Prewarm caches on startup (fire and forget, don't await at module level to avoid async module)
 prewarmStaticEndpoints().catch((err) => {
