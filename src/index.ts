@@ -17,11 +17,6 @@ import { resolve } from 'path';
 
 const localIp = getLocalLanIp();
 
-const frontendDist = resolve(process.cwd(), 'frontend/dist');
-const indexHtml = resolve(frontendDist, 'index.html');
-
-console.log('Serving frontend from:', frontendDist);
-
 export const app = new Elysia({
   normalize: true,
 })
@@ -41,18 +36,6 @@ export const app = new Elysia({
       preflight: true,
     })
   )
-
-  .get('/', () => file(indexHtml))
-  // serve assets with /assets prefix (so /assets/index.js works)
-  .use(
-    staticPlugin({
-      assets: resolve(frontendDist, 'assets'),
-      prefix: '/assets'
-    })
-  )
-  // serve other root files (like vite.svg, robots.txt) if needed, or just let them fall through if not critical
-  .get('/vite.svg', () => file(resolve(frontendDist, 'vite.svg')))
-  .get('/robots.txt', () => file(resolve(frontendDist, 'robots.txt')))
 
   .group('/dynamic/:year', (_dynamic) => {
     _dynamic.get(
