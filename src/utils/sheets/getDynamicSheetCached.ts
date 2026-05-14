@@ -1,17 +1,6 @@
 import cache from '../../services/cache';
 import { fetchSheetData } from './fetchSheetData';
 import { filterToAllowedHeaders } from '../filterToAllowedHeaders';
-import {
-  cacheRefreshTimes,
-  REFRESH_THRESHOLD_MS,
-  recordCacheHit,
-  recordCacheMiss,
-  recordDynamicSheetAccess,
-  recordDynamicSheetUpdate,
-  recordRequest,
-  recordResponseTime,
-  recordKeyRequest,
-} from '../metrics';
 import { ALLOWED_DYNAMIC_HEADERS, HEADER_TRANSFORMATIONS } from '../../constants';
 import { logCacheEvent } from '../cache';
 
@@ -46,9 +35,9 @@ function extractKeys(rawData: Record<string, any[]>) {
   if (!keysHeader) return undefined;
 
   const col = rawData[keysHeader];
-  
+
   if (!Array.isArray(col)) return undefined;
-  
+
   return col.map(normalizeKeyCell);
 }
 
@@ -61,26 +50,10 @@ export async function getDynamicSheetCached(
   const start_time = Date.now();
 
   try {
-  recordRequest(); // Track request for RPM
-  recordDynamicSheetAccess(`${y}_${sheetTab}`); // Track dynamic sheet access (include year)
-
     // Check if we have cached data
     const cachedData = await cache.get<Record<string, any[]>>(cacheKey);
 
     if (cachedData) {
-      const lastRefreshTime = cacheRefreshTimes.get(cacheKey) || 0;
-      const timeSinceRefresh = Date.now() - lastRefreshTime;
-
-      if (timeSinceRefresh > REFRESH_THRESHOLD_MS) {
-        logCacheEvent(
-          '🔄 Triggering background refresh',
-          cacheKey,
-          `(${Math.round(timeSinceRefresh / 1000)}s old)`
-        );
-      }
-
-      logCacheEvent('⚡ Cache hit', cacheKey, `(age: ${Math.round(timeSinceRefresh / 1000)}s)`);
-
       const filteredData = filterToAllowedHeaders(
         cachedData,
         ALLOWED_DYNAMIC_HEADERS,
@@ -90,12 +63,6 @@ export async function getDynamicSheetCached(
       const keys = extractKeys(cachedData);
 
       const responseTime = Date.now() - start_time;
-
-  // Only record metrics after successful response
-  // Record as successful query for top/recent metrics
-  recordKeyRequest(cacheKey);
-  recordCacheHit(cacheKey);
-  recordResponseTime(true, responseTime);
 
       return {
         dataOrigin: 'cache',
@@ -127,8 +94,6 @@ export async function getDynamicSheetCached(
     logCacheEvent('🎯 Cache miss', cacheKey, `fetched fresh data from sheet '${sheetTab}'`);
 
     await cache.set(cacheKey, result.data);
-    cacheRefreshTimes.set(cacheKey, Date.now());
-    recordDynamicSheetUpdate(`${y}_${sheetTab}`);
 
     logCacheEvent('🎯 New dynamic cache entry', cacheKey);
 
@@ -141,12 +106,6 @@ export async function getDynamicSheetCached(
     const keys = extractKeys(result.data);
 
     const responseTime = Date.now() - start_time;
-
-  // Only record metrics after successful response
-  // Record as successful query for top/recent metrics
-  recordKeyRequest(cacheKey);
-  recordCacheMiss(cacheKey);
-  recordResponseTime(false, responseTime);
 
     return {
       dataOrigin: 'googleAPI',

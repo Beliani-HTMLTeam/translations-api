@@ -1,18 +1,9 @@
 import cache from '../../services/cache';
 import { fetchSheetData } from './fetchSheetData';
 import { refreshCacheInBackground } from '../refresh';
-import {
-  REFRESH_THRESHOLD_MS,
-  cacheRefreshTimes,
-  recordCacheHit,
-  recordCacheMiss,
-  recordStaticSheetAccess,
-  recordStaticSheetUpdate,
-  recordRequest,
-  recordResponseTime,
-} from '../metrics';
 import { logCacheEvent, handleCacheError } from '../cache';
 import { Result } from '../../types/cache/Result';
+import { REFRESH_THRESHOLD_MS } from '../../constants';
 
 export async function getDataFromStaticSheet(
   sheetName: string,
@@ -22,33 +13,14 @@ export async function getDataFromStaticSheet(
   let start_time = Date.now();
 
   try {
-    recordRequest(); // Track request for RPM
-    recordStaticSheetAccess(cacheKey); // Track static sheet access
-
     const cachedData = await cache.get(cacheKey);
 
     if (cachedData) {
       const responseTime = Number((Date.now() - start_time).toFixed(2));
-      const lastRefreshTime = cacheRefreshTimes.get(cacheKey) || 0;
-      const timeSinceRefresh = Date.now() - lastRefreshTime;
 
-      if (timeSinceRefresh > REFRESH_THRESHOLD_MS) {
-        if (!isPrewarm)
-          logCacheEvent(
-            '🔄 Triggering background refresh',
-            cacheKey,
-            `(${Math.round(timeSinceRefresh / 1000)}s old)`
-          );
-        refreshCacheInBackground(sheetName, cacheKey);
-      }
-
-      if (!isPrewarm)
-        logCacheEvent('⚡ Cache hit', cacheKey, `(age: ${Math.round(timeSinceRefresh / 1000)}s)`);
-
-      // Only record metrics after successful response (not for prewarm)
       if (!isPrewarm) {
-        recordCacheHit(cacheKey);
-        recordResponseTime(true, responseTime);
+        refreshCacheInBackground(sheetName, cacheKey);
+        logCacheEvent('⚡ Cache hit', cacheKey);
       }
 
       return {
@@ -63,17 +35,9 @@ export async function getDataFromStaticSheet(
 
     const sheetData = await fetchSheetData('STATIC', sheetName);
     await cache.set(cacheKey, sheetData.data);
-    cacheRefreshTimes.set(cacheKey, Date.now());
-    recordStaticSheetUpdate(cacheKey); // Track cache update
 
     const responseTime = Date.now() - start_time;
     if (!isPrewarm) logCacheEvent('🎯 New static cache entry', cacheKey);
-
-    // Only record metrics after successful response (not for prewarm)
-    if (!isPrewarm) {
-      recordCacheMiss(cacheKey, isPrewarm);
-      recordResponseTime(false, responseTime);
-    }
 
     return {
       dataOrigin: 'googleAPI',

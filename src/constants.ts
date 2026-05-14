@@ -37,3 +37,5 @@ export const keyToSheetMap: Record<string, string> = {
   category_links_all: 'CATEGORY_LINKS',
   category_titles_all: 'CATEGORY_TITLES',
 };
+
+export const REFRESH_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes

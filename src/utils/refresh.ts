@@ -1,4 +1,3 @@
-import { cacheRefreshTimes } from './metrics';
 import { fetchSheetData } from './sheets/';
 import { formatTime } from './time';
 import cache from '../services/cache';
@@ -18,7 +17,6 @@ export async function refreshCacheInBackground(sheetName: string, cacheKey: stri
 
     // Only cache the data, not the Result wrapper
     await cache.set(cacheKey, result.data);
-    cacheRefreshTimes.set(cacheKey, Date.now());
     console.log(`[${formatTime(new Date())}] 🎯 | Background refresh completed for '${cacheKey}'`);
   } catch (err) {
     console.error(

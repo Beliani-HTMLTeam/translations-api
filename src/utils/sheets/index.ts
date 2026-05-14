@@ -1,7 +1,6 @@
 import cache from '../../services/cache';
 import { fetchSheetData } from './fetchSheetData';
 import { logCacheEvent } from '../cache';
-import { cacheRefreshTimes } from '../metrics';
 
 export async function forceRefreshStaticCache(sheetName: string, cacheKey: string) {
   let start_time = Date.now();
@@ -26,7 +25,6 @@ export async function forceRefreshStaticCache(sheetName: string, cacheKey: strin
 
     // Only cache the data, not the Result wrapper
     await cache.set(cacheKey, result.data);
-    cacheRefreshTimes.set(cacheKey, Date.now());
 
     logCacheEvent('🎯 Static cache refreshed', cacheKey);
     const responseTime = Number((Date.now() - start_time).toFixed(2));
@@ -64,7 +62,6 @@ export async function forceRefreshDynamicCache(sheet_tab: string, year?: string)
 
     // Only cache the data, not the Result wrapper
     await cache.set(`dynamic_${y}_${sheet_tab}`, result.data);
-    cacheRefreshTimes.set(`dynamic_${y}_${sheet_tab}`, Date.now());
 
     logCacheEvent('🎯 Dynamic cache refreshed', `${y}_${sheet_tab}`);
     const responseTime = Number((Date.now() - start_time).toFixed(2));

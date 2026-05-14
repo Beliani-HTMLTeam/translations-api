@@ -3,14 +3,6 @@ import { fetchSheetData } from './fetchSheetData';
 import { keyToSheetMap } from '../../constants';
 import { getOrRefreshCache, logCacheEvent } from '../cache';
 import { Result } from '../../types/cache/Result';
-import {
-  recordKeyRequest,
-  recordLanguageRequest,
-  recordCacheHit,
-  recordCacheMiss,
-  recordResponseTime,
-  recordRequest,
-} from '../metrics';
 
 export async function getStaticTranslationsBySlug(
   cacheKey: string,
@@ -18,9 +10,6 @@ export async function getStaticTranslationsBySlug(
 ): Promise<Result<Record<string, any>>> {
   const start_time = Date.now();
   checkIfPrewarmIsDone();
-
-  // Record metrics: track request arrival (RPM)
-  recordRequest(); // Track request for RPM
 
   const cachedData = await cache.get(cacheKey);
   const isCacheHit = cachedData !== undefined;
@@ -49,17 +38,12 @@ export async function getStaticTranslationsBySlug(
 
   if (idx === -1) {
     const responseTime = Number((Date.now() - start_time).toFixed(2));
-    recordResponseTime(isCacheHit, responseTime); // Record even for 404
-    // Don't record language request - invalid language
 
     return {
       code: 404,
       message: `No translations found!`,
     };
   }
-
-  // Language is valid, record it now
-  recordLanguageRequest(languageSlug);
 
   const values: Record<string, any> = {};
   const entriesWithoutSlug = Object.entries(cacheEntry).slice(1);
@@ -68,9 +52,6 @@ export async function getStaticTranslationsBySlug(
     if (Array.isArray(translationsArray)) {
       values[propertyKeys] = translationsArray[idx] ?? null;
     } else {
-      const responseTime = Number((Date.now() - start_time).toFixed(2));
-      recordResponseTime(isCacheHit, responseTime); // Record even for 500
-
       return {
         code: 500,
         message: `Error! No array found!`,
@@ -79,18 +60,6 @@ export async function getStaticTranslationsBySlug(
   }
 
   const responseTime = Number((Date.now() - start_time).toFixed(2));
-
-  // Record cache hit/miss
-  // Only record successful query in top/recent metrics
-  recordKeyRequest(cacheKey);
-  if (isCacheHit) {
-    recordCacheHit(cacheKey);
-  } else {
-    recordCacheMiss(cacheKey);
-  }
-
-  // Record response time
-  recordResponseTime(isCacheHit, responseTime);
 
   logCacheEvent('🎯 Translations fetched', cacheKey, `Execution time: ${responseTime}ms`);
 

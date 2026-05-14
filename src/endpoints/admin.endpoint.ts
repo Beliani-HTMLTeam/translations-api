@@ -1,5 +1,4 @@
 import { t } from 'elysia';
-import { getCacheStats } from '../utils/stats/getCacheStats';
 
 // token store
 const tokens = new Map<string, { createdAt: number; username: string }>();
@@ -96,65 +95,6 @@ export function registerAdminGroup(parent: any) {
             401: t.Object({
               code: t.Literal(401),
               message: t.Literal('Invalid or missing token.'),
-            }),
-          },
-        }
-      )
-
-      .get(
-        '/cache-stats',
-        async ({ headers, set }: any) => {
-          const auth = headers['authorization'] || headers['Authorization'];
-
-          // if (!validateAuthHeader(auth)) {
-          //   set.status = 401;
-          //   return { code: 401, message: 'Authorization failed.' };
-          // }
-
-          const stats = await getCacheStats();
-          return stats;
-        },
-        {
-          tags: ['Admin'],
-          response: {
-            200: t.Object({
-              avgResponseTime: t.Optional(t.Number()),
-              rpmHistory: t.Optional(t.Array(t.Number())),
-              top10Queries: t.Optional(
-                t.Array(
-                  t.Object({
-                    name: t.String(),
-                    count: t.Number(),
-                  })
-                )
-              ),
-              sheetTabs: t.Array(t.Object({ name: t.String() })),
-              items: t.Number(),
-              topLanguages: t.Optional(
-                t.Array(
-                  t.Object({
-                    name: t.String(),
-                    count: t.Number(),
-                  })
-                )
-              ),
-              memoryUsed: t.Optional(t.Number()),
-              hits: t.Optional(t.Number()),
-              misses: t.Optional(t.Number()),
-              recentQueries: t.Optional(
-                t.Array(
-                  t.Object({
-                    name: t.Optional(t.String()),
-                    time: t.Number(),
-                  })
-                )
-              ),
-              queriesLast30Days: t.Optional(t.Number()),
-            }),
-
-            401: t.Object({
-              code: t.Literal(401),
-              message: t.Literal('Authorization failed.'),
             }),
           },
         }
