@@ -28,13 +28,13 @@ else
   exit 1
 fi
 
-# build frontend
-echo "Building frontend..."
-cd frontend
-bun install
-echo "Building for production..."
-bun run build:prod
-cd ..
+# # build frontend
+# echo "Building frontend..."
+# cd frontend
+# bun install
+# echo "Building for production..."
+# bun run build:prod
+# cd ..
 
 # reload via pm2
 if command -v pm2 >/dev/null 2>&1; then
