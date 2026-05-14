@@ -64,6 +64,8 @@ export async function getDynamicSheetCached(
 
       const responseTime = Date.now() - start_time;
 
+      logCacheEvent('⚡ Cache hit', cacheKey);
+
       return {
         dataOrigin: 'cache',
         executionTime: responseTime,
