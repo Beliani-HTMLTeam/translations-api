@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@iconify-react/basil": "^1.0.2",
+    "@iconify-react/material-icon-theme": "^1.0.13",
+    "@iconify-react/simple-icons": "^1.0.12",
+    "@iconify-react/skill-icons": "^1.0.2",
     "next": "^16.2.6",
     "nextra": "4.5.0",
     "nextra-theme-docs": "4.5.0",

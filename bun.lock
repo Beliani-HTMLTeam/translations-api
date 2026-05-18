@@ -25,6 +25,9 @@
       "version": "0.1.0",
       "dependencies": {
         "@iconify-react/basil": "^1.0.2",
+        "@iconify-react/material-icon-theme": "^1.0.13",
+        "@iconify-react/simple-icons": "^1.0.12",
+        "@iconify-react/skill-icons": "^1.0.2",
         "next": "^16.2.6",
         "nextra": "4.5.0",
         "nextra-theme-docs": "4.5.0",
@@ -158,6 +161,12 @@
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.3", "", {}, "sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ=="],
 
     "@iconify-react/basil": ["@iconify-react/basil@1.0.2", "", { "dependencies": { "@iconify/css-react": "^1.0.1" } }, "sha512-bjqpn1ha2wJmW+Q32netivxq7y18ypJ7V/9TbqZm1fYoi0dfA7n8bzbxFD7QQenkvOJ5hOubjtiMEUKHufFSjQ=="],
+
+    "@iconify-react/material-icon-theme": ["@iconify-react/material-icon-theme@1.0.13", "", { "dependencies": { "@iconify/css-react": "^1.0.1" } }, "sha512-6XOCz9mwJb0e+t3LPJPA/a1OsKKNFSIB3O8xB4U9i9HMFzfqZMh+z2KFZYGXp7WNFa5VuSHdngnQHf4ZG0Io7A=="],
+
+    "@iconify-react/simple-icons": ["@iconify-react/simple-icons@1.0.12", "", { "dependencies": { "@iconify/css-react": "^1.0.1" } }, "sha512-e/QY6ZGS3UulI7mlTo3ZoT9yq2o13catTMAlBLsF0m47CLwFox08LKsY2ruZFwUlMOswXxWMmRGhx/fsTIydsA=="],
+
+    "@iconify-react/skill-icons": ["@iconify-react/skill-icons@1.0.2", "", { "dependencies": { "@iconify/css-react": "^1.0.1" } }, "sha512-d51LCd0Q4cHGZvJ06M94W+F8NhFVaNYov9ENAxOZlolOmsyRRelPBcZ3eIv6OdjYC+kEj8FfCG4BNorEQxQFMQ=="],
 
     "@iconify/css-react": ["@iconify/css-react@1.0.2", "", { "dependencies": { "@iconify/types": "^2.0.0" }, "peerDependencies": { "react": ">=18.0.0" } }, "sha512-k33FKG4jGgd8odos+1HdSwCKZOQ5F1heQxwl/zDrA53tLg5IseDPMqsmQbcCEZ6E0Zgcrmfo4ceFSBmbuEvGtw=="],
 
