@@ -14,7 +14,8 @@
     "compress-json": "^3.4.0",
     "elysia": "^1.4.28",
     "google-auth-library": "^10.6.2",
-    "google-spreadsheet": "^5.2.0"
+    "google-spreadsheet": "^5.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "bun-types": "latest"
