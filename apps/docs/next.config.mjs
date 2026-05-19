@@ -1,6 +1,8 @@
 import nextra from 'nextra'
- 
-const withNextra = nextra({})
+
+const withNextra = nextra({
+  // ... other Nextra config options
+})
 
 export default withNextra({
   async rewrites() {

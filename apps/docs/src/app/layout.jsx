@@ -22,7 +22,7 @@ const config = {
           }}
         >
           <img alt="Beliani Logo" src="/logo.svg" />
-          <span style={{ whiteSpace: 'nowrap' }}>HTML SOPs</span>
+          <span style={{ whiteSpace: 'nowrap' }}>HTML-Team Docs</span>
         </div>
       }
     />
@@ -51,7 +51,7 @@ export default async function RootLayout({ children }) {
           banner={config.banner || undefined}
           navbar={config.navbar || undefined}
           pageMap={await getPageMap()}
-          docsRepositoryBase="https://github.com/shuding/nextra/tree/main/docs"
+          docsRepositoryBase="https://github.com/Beliani-HTMLTeam/server-setup/tree/main/apps/sops/src/app/"
           footer={config.footer || undefined}
           // ... Your additional layout options
         >

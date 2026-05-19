@@ -1,5 +1,5 @@
 import { Cards } from 'nextra/components'
-import { Icon } from '../components/Icon'
+import { Icon } from './Icon'
 
 const cards = [
   {

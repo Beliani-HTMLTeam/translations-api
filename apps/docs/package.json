@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -12,8 +12,11 @@
   "dependencies": {
     "@iconify-react/basil": "^1.0.2",
     "@iconify-react/material-icon-theme": "^1.0.13",
-    "@iconify-react/simple-icons": "^1.0.12",
+    "@iconify-react/simple-icons": "^1.0.13",
     "@iconify-react/skill-icons": "^1.0.2",
+    "@mdx-js/loader": "^3.1.1",
+    "@mdx-js/react": "^3.1.1",
+    "@next/mdx": "^16.2.6",
     "next": "^16.2.6",
     "nextra": "4.5.0",
     "nextra-theme-docs": "4.5.0",
