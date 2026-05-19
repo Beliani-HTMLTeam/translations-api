@@ -5,7 +5,7 @@ const settings = {
   ttl: 30 * 60, // 30 minutes
 
   // how often worker should check for expired entries in seconds
-  workerInterval: 60, // 1 minute
+  workerInterval: 600, // 10 minutes
 
   headers: {
     // allowed headers, skip stuff like " ", weird spreadsheet artifacts etc
