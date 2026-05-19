@@ -37,4 +37,5 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-apps/sops/_pagefind/
+apps/docs/_pagefind/
+apps/docs/content/docs/
