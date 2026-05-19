@@ -1,4 +1,4 @@
-import { getTabNameById } from '../utils/sheets'
+import { getTabNameById } from '../utils/getTabNameById'
 import { resolveYearFromSpreadsheetId } from '../googleAuth'
 
 export function registerMiscGroup(parent: any) {

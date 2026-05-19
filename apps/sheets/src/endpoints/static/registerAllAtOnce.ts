@@ -1,22 +1,14 @@
-import cache, { checkIfPrewarmIsDone } from '../../services/cache'
 import { Result } from '../../types/cache/Result'
-import { forceRefreshStaticCache } from '../../utils/sheets'
-import { getDataFromStaticSheet } from '../../utils/sheets/getDataFromStaticSheet'
-import { getStaticTranslationsBySlug } from '../../utils/sheets/getStaticTranslationsBySlug'
+import { Sheet } from '../../utils/Sheet'
 import { makeResponseSchema } from '../../types/api-response'
+import { Hermes } from '../../utils/Logger'
 
-const messages = {
-  success_refresh: `Cache refreshed!`,
-  not_found: 'No translations found!',
-  error: 'Error 500! Unexpected error occurred.',
-  available_languages: 'Available language slugs fetched successfully',
-}
+import settings from '../../config'
 
 interface EndpointSettings {
   tags: string[]
   endpoint: string
   sheetName: string
-  cacheKey: string
   messages: {
     success_fetch: string
   }
@@ -27,85 +19,39 @@ function schema(endpoint: EndpointSettings) {
     tags: endpoint.tags,
     messages: {
       success_fetch: endpoint.messages.success_fetch,
-      success_refresh: messages.success_refresh,
-      not_found: messages.not_found,
-      error: messages.error,
+      success_refresh: settings.endpoints.static.messages.success_refresh,
+      not_found: settings.endpoints.static.messages.not_found,
+      error: settings.endpoints.static.messages.error,
     },
   })
 }
 
-const endpoints: Record<string, EndpointSettings> = {
-  category_links: {
-    tags: ['Category Links'],
-    endpoint: '/category_links',
-    sheetName: 'CATEGORY_LINKS',
-    cacheKey: 'category_links_all',
-    messages: {
-      success_fetch: 'Category links fetched successfully',
-    },
-  },
-  category_titles: {
-    tags: ['Category Titles'],
-    endpoint: '/category_titles',
-    sheetName: 'CATEGORY_TITLES',
-    cacheKey: 'category_titles_all',
-    messages: {
-      success_fetch: 'Category titles fetched successfully',
-    },
-  },
-  footer: {
-    tags: ['Footer'],
-    endpoint: '/footer',
-    sheetName: 'FOOTER',
-    cacheKey: 'footer_all',
-    messages: {
-      success_fetch: 'Footer fetched successfully',
-    },
-  },
-  header: {
-    tags: ['Header'],
-    endpoint: '/header',
-    sheetName: 'HEADER',
-    cacheKey: 'header_all',
-    messages: {
-      success_fetch: 'Header fetched successfully',
-    },
-  },
-  templates: {
-    tags: ['Templates'],
-    endpoint: '/templates',
-    sheetName: 'TEMPLATES',
-    cacheKey: 'templates_all',
-    messages: {
-      success_fetch: 'Templates fetched successfully',
-    },
-  },
-}
-
 export function registerAllAtOnce(parent: any) {
-  Object.keys(endpoints).forEach((key: string) => {
-    const endp = endpoints[key]
+  const { routes, messages } = settings.endpoints.static
 
-    console.log(`% Registering static endpoint: ${endp.endpoint}`)
+  Object.keys(routes).forEach((key: string) => {
+    const endp = (routes as Record<string, EndpointSettings>)[key]
+
+    Hermes.debug(`% Registering static endpoint: ${endp.endpoint}`)
 
     parent.group(endp.endpoint, (group: any) =>
       group
         // get all translations
         .get(
           '/',
-          async (): Promise<Result<any>> => {
-            checkIfPrewarmIsDone()
-
-            const res = await getDataFromStaticSheet(
-              endp.sheetName,
-              endp.cacheKey
-            )
+          async (context: any): Promise<Result<any>> => {
+            const sheet = new Sheet('globalTranslations')
+            const res = await sheet.getTab(endp.sheetName)
+            if (!res) {
+              context.set.status = 404
+              return { code: 404, message: messages.not_found }
+            }
 
             return {
               code: 200,
               message: endp.messages.success_fetch,
               executionTime: res.executionTime,
-              dataOrigin: res.dataOrigin,
+              dataOrigin: res.dataOrigin as any,
               data: res.data,
             }
           },
@@ -115,16 +61,19 @@ export function registerAllAtOnce(parent: any) {
         // force refresh
         .get(
           '/force-refresh',
-          async (): Promise<Result<null>> => {
-            const res = await forceRefreshStaticCache(
-              endp.sheetName,
-              endp.cacheKey
-            )
+          async (context: any): Promise<Result<null>> => {
+            try {
+              const sheet = new Sheet('globalTranslations')
+              const res = await sheet.forceRefresh(endp.sheetName)
 
-            return {
-              code: 200,
-              message: messages.success_refresh,
-              executionTime: res.executionTime,
+              return {
+                code: 200,
+                message: messages.success_refresh,
+                executionTime: res.executionTime,
+              }
+            } catch (err: any) {
+              context.set.status = 500
+              return { code: 500, message: messages.error }
             }
           },
           schema(endp)
@@ -135,25 +84,21 @@ export function registerAllAtOnce(parent: any) {
             // list available slugs
             .get(
               '/',
-              async (): Promise<Result<any>> => {
-                let start_time = Date.now()
-                const isCacheHit =
-                  (await cache.get(endp.cacheKey)) !== undefined
+              async (context: any): Promise<Result<any>> => {
+                const sheet = new Sheet('globalTranslations')
+                const res = await sheet.getTab(endp.sheetName)
 
-                const cacheEntry = await cache.wrap(endp.cacheKey, async () => {
-                  const result = await getDataFromStaticSheet(
-                    endp.sheetName,
-                    endp.cacheKey
-                  )
-                  return result.data
-                })
+                if (!res) {
+                  context.set.status = 404
+                  return { code: 404, message: messages.not_found }
+                }
 
                 return {
                   code: 200,
                   message: messages.available_languages,
-                  executionTime: Number((Date.now() - start_time).toFixed(2)),
-                  dataOrigin: isCacheHit ? 'cache' : 'googleAPI',
-                  data: cacheEntry.slug,
+                  executionTime: res.executionTime,
+                  dataOrigin: res.dataOrigin as any,
+                  data: res.data.slug || [],
                 }
               },
               schema(endp)
@@ -167,28 +112,43 @@ export function registerAllAtOnce(parent: any) {
                   params: { language_slug },
                   set,
                 }: any): Promise<Result<any>> => {
-                  const data = await getStaticTranslationsBySlug(
-                    endp.cacheKey,
-                    language_slug
-                  )
+                  try {
+                    const sheet = new Sheet('globalTranslations')
+                    const res = await sheet.getTab(endp.sheetName)
 
-                  // Handle error responses (404, 500)
-                  if (data.code === 404 || data.code === 500) {
-                    set.status = data.code
-                    return {
-                      code: data.code,
-                      message:
-                        data.code === 404 ? messages.not_found : messages.error,
+                    if (!res) {
+                      set.status = 404
+                      return { code: 404, message: messages.not_found }
                     }
-                  }
 
-                  // Success response
-                  return {
-                    code: 200,
-                    message: endp.messages.success_fetch,
-                    executionTime: data.executionTime,
-                    dataOrigin: data.dataOrigin,
-                    data: data.data,
+                    const slugs = res.data.slug
+                    if (!slugs) {
+                      set.status = 404
+                      return { code: 404, message: messages.not_found }
+                    }
+
+                    const index = slugs.indexOf(language_slug)
+                    if (index === -1) {
+                      set.status = 404
+                      return { code: 404, message: messages.not_found }
+                    }
+
+                    const resultData: Record<string, any> = {}
+                    const allKeys = Object.keys(res.data)
+                    for (const k of allKeys) {
+                      resultData[k] = res.data[k][index]
+                    }
+
+                    return {
+                      code: 200,
+                      message: endp.messages.success_fetch,
+                      executionTime: res.executionTime,
+                      dataOrigin: res.dataOrigin as any,
+                      data: resultData,
+                    }
+                  } catch (err: any) {
+                    set.status = 500
+                    return { code: 500, message: messages.error }
                   }
                 },
                 schema(endp)
@@ -197,8 +157,7 @@ export function registerAllAtOnce(parent: any) {
         )
     )
 
-    console.log(`@ ${endp.endpoint} registered!`)
-
-    return parent
+    Hermes.debug(`@ ${endp.endpoint} registered!`)
   })
+  return parent
 }
